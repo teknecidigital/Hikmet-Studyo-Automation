@@ -7,9 +7,9 @@ import { execSync } from 'child_process';
 function autoCommitAndPush(category, title) {
   try {
     execSync('git add .', { stdio: 'ignore' });
-    execSync(`git commit -m "Otonom Üretim: [${category}] ${title}"`, { stdio: 'ignore' });
+    execSync(`git commit -m "Otonom Uretim: [${category}] ${title}"`, { stdio: 'ignore' });
     execSync('git push origin main', { stdio: 'ignore' });
-    console.log(`[GitHub Otomasyon]: Yeni üretim GitHub bulut deposuna aktarıldı! 🚀`);
+    console.log(`[GitHub Otomasyon]: Yeni üretim GitHub'a aktarıldı! 🚀`);
   } catch (error) {
     console.log(`[GitHub Otomasyon]: Aktarım güncel.`);
   }
@@ -39,12 +39,10 @@ export function runContinuousAutonomousLoop() {
       producedContent = gameAgent.generateContent();
     } else {
       producedContent = shortsAgent.generateContent();
-      // Eğer strateji Shorts ise doğrudan YouTube kanalına otomatik gönderelim
       await publishShortsToYouTube(producedContent);
     }
 
     console.log(`[Otonom Rapor] Kategori: ${producedContent.type} | İçerik: ${producedContent.content}`);
-    
     autoCommitAndPush(producedContent.type, producedContent.content);
     console.log("--------------------------------------------------");
   }, 5000);
