@@ -2,44 +2,82 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Tekneci Digital - Instagram Tarzı Otonom Ofis Simülasyonu</title>
+    <title>Tekneci Digital - Otonom Ofis ve Performans Paneli</title>
     <style>
         body { margin: 0; background: #0c0d14; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sol Panel: Anlık Ajan Akış Raporu */
-        #sidebar { width: 360px; background: #13151f; border-right: 2px solid #212538; display: flex; flex-direction: column; padding: 20px; box-shadow: 5px 0 20px rgba(0,0,0,0.6); z-index: 10; }
-        h2 { font-size: 18px; color: #00ffcc; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .log-box { flex-grow: 1; background: #08090f; border: 1px solid #212538; border-radius: 10px; padding: 12px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #00ffcc; line-height: 1.5; }
+        /* Sol Panel: Canlı Akış ve Performans Tablosu */
+        #sidebar { width: 420px; background: #13151f; border-right: 2px solid #212538; display: flex; flex-direction: column; padding: 15px; box-shadow: 5px 0 20px rgba(0,0,0,0.6); z-index: 10; overflow-y: auto; }
+        h2 { font-size: 16px; color: #00ffcc; margin-top: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Tablo Stili */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; background: #08090f; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #212538; padding: 6px 8px; text-align: left; }
+        th { background: #1a1e2d; color: #00ffcc; font-weight: 600; }
+        
+        .log-box { height: 140px; background: #08090f; border: 1px solid #212538; border-radius: 8px; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 11px; color: #00ffcc; line-height: 1.4; }
         
         /* Sağ Panel: Canlı 2D Ofis Katı */
         #office-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: #10121b; }
         canvas { box-shadow: 0 0 50px rgba(0,0,0,0.9); border-radius: 14px; background: #181b28; border: 2px solid #262b3d; }
-        
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h2>🕹️ Otonom Ofis Canlı Akışı</h2>
-        <div style="font-size: 12px; color: #8a8f9d; margin-bottom: 12px;">Instagram tarzı ajan hareket ve görev takibi:</div>
+        <h2>📊 Canlı Üretim & Gelir Tablosu</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Proje / Modül</th>
+                    <th>Üretim</th>
+                    <th>Gösterim</th>
+                    <th>Gelir</th>
+                </tr>
+            </thead>
+            <tbody id="statsTableBody">
+                <!-- Dinamik olarak güncellenecek -->
+            </tbody>
+        </table>
+
+        <h2>🕹️ Ajan Akış Logları</h2>
         <div class="log-box" id="logStream">
-            [00:01] Sistem başlatıldı. Ajanlar odalarındaki yerini aldı.<br>
-            [00:02] Hollywood Senaristi sonraki konuyu kurguluyor...<br>
-        </div>
-        <div style="font-size: 11px; color: #6c7285; margin-top: 15px; border-top: 1px solid #212538; padding-top: 10px;">
-            <b>İpucu:</b> Karakterler odalarında çalışır, görev tamamlandığında koridorda hareket ederler.
+            [Sistem]: 2D Otonom ofis tablosu aktif edildi.<br>
         </div>
     </div>
 
     <div id="office-container">
-        <canvas id="pixelOfficeCanvas" width="900" height="650"></canvas>
+        <canvas id="pixelOfficeCanvas" width="820" height="620"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('pixelOfficeCanvas');
         const ctx = canvas.getContext('2d');
         const logStream = document.getElementById('logStream');
+        const statsTableBody = document.getElementById('statsTableBody');
+
+        // Proje Verileri (Canlı Sayaçlar)
+        let projectStats = [
+            { name: 'Atasözleri & Deyimler', count: 12, views: '45.2K', revenue: '$142.50', color: '#4CAF50' },
+            { name: 'Oyun Bulmacaları', count: 9, views: '28.1K', revenue: '$98.20', color: '#2196F3' },
+            { name: 'YouTube Shorts', count: 15, views: '124.6K', revenue: '$410.80', color: '#ffeb3b' },
+            { name: 'Senaryo Stratejisi', count: 36, views: 'N/A', revenue: '$0.00', color: '#ff5722' }
+        ];
+
+        function updateTable() {
+            statsTableBody.innerHTML = '';
+            projectStats.forEach(p => {
+                statsTableBody.innerHTML += `
+                    <tr>
+                        <td style="color: ${p.color}; font-weight: bold;">${p.name}</td>
+                        <td>${p.count} adet</td>
+                        <td>${p.views}</td>
+                        <td style="color: #00ffcc;">${p.revenue}</td>
+                    </tr>
+                `;
+            });
+        }
+        updateTable();
 
         function addLog(text) {
             const time = new Date().toLocaleTimeString();
@@ -49,120 +87,97 @@
 
         // Departman Odaları
         const rooms = [
-            { id: 'senarist', name: 'Senarist Odası', x: 40, y: 40, w: 380, h: 260, color: '#ff5722' },
-            { id: 'atasozu', name: 'Atasözü Departmanı', x: 480, y: 40, w: 380, h: 260, color: '#4CAF50' },
-            { id: 'oyun', name: 'Oyun Stüdyosu', x: 40, y: 340, w: 380, h: 260, color: '#2196F3' },
-            { id: 'shorts', name: 'YouTube Shorts Odası', x: 480, y: 340, w: 380, h: 260, color: '#ffeb3b' }
+            { name: 'Senarist Odası', x: 30, y: 30, w: 360, h: 260, color: '#ff5722' },
+            { name: 'Atasözü Departmanı', x: 430, y: 30, w: 360, h: 260, color: '#4CAF50' },
+            { name: 'Oyun Stüdyosu', x: 30, y: 320, w: 360, h: 260, color: '#2196F3' },
+            { name: 'YouTube Shorts Odası', x: 430, y: 320, w: 360, h: 260, color: '#ffeb3b' }
         ];
 
-        // Ajan Karakterler (Instagram Tarzı Mini Avatarlar)
         let agents = [
-            { name: 'Senarist', role: 'Hollywood Senaristi', x: 150, y: 150, targetX: 150, targetY: 150, color: '#ff5722', roomIndex: 0, status: 'Senaryo Yazıyor' },
-            { name: 'Atasözü', role: 'Kültür Uzmanı', x: 590, y: 150, targetX: 590, targetY: 150, color: '#4CAF50', roomIndex: 1, status: 'Veri Taranıyor' },
-            { name: 'Oyun', role: 'Bulmaca Uzmanı', x: 150, y: 450, targetX: 150, targetY: 450, color: '#2196F3', roomIndex: 2, status: 'Kod Üretiliyor' },
-            { name: 'Shorts', role: 'Video Uzmanı', x: 590, y: 450, targetX: 590, targetY: 450, color: '#ffeb3b', roomIndex: 3, status: 'Kanal Aktif 🚀' }
+            { name: 'Senarist', x: 120, y: 140, color: '#ff5722', status: 'Senaryo Üretiyor' },
+            { name: 'Atasözü Uzmanı', x: 520, y: 140, color: '#4CAF50', status: 'Veri İşliyor' },
+            { name: 'Oyun Uzmanı', x: 120, y: 430, color: '#2196F3', status: 'Bulmaca Kurguluyor' },
+            { name: 'Shorts Uzmanı', x: 520, y: 430, color: '#ffeb3b', status: 'Kanala Aktarıyor 🚀' }
         ];
 
-        // Otonom Akış Simülasyon Olayları
-        const flowMessages = [
-            "Senarist yeni bir video serisi kurguladı.",
-            "Atasözü uzmanı günün deyimini veritabanına işledi.",
-            "Oyun modülü yeni bulmaca sorusunu test etti.",
-            "YouTube Shorts içeriği otomatik olarak buluta ve kanala aktarıldı!"
+        // Otonom Döngü Simülasyonu (Tabloyu ve istatistikleri günceller)
+        const flowEvents = [
+            { mod: 0, text: "Atasözü modülü yeni bir içerik üretti.", viewAdd: 3200, revAdd: 12.40 },
+            { mod: 1, text: "Oyun bulmacası çözüldü ve puanlandı.", viewAdd: 1800, revAdd: 8.10 },
+            { mod: 2, text: "YouTube Shorts videosu otomatik yayınlandı ve izlendi!", viewAdd: 12400, revAdd: 45.60 }
         ];
 
-        let msgIdx = 0;
+        let eventIdx = 0;
         setInterval(() => {
-            const activeMsg = flowMessages[msgIdx % flowMessages.length];
-            addLog(activeMsg);
-            
-            // Rastgele bir ajanı hareket ettir / canlandır
-            let movingAgent = agents[msgIdx % agents.length];
-            movingAgent.status = "Aktif Üretim Yapıyor ⚡";
-            
-            setTimeout(() => {
-                movingAgent.status = "Görev Tamamlandı (Bekliyor)";
-            }, 3000);
+            const ev = flowEvents[eventIdx % flowEvents.length];
+            addLog(ev.text);
 
-            msgIdx++;
+            // İlgili modülün sayaçlarını artıralım
+            if (ev.mod === 0) projectStats[0].count++;
+            if (ev.mod === 1) projectStats[1].count++;
+            if (ev.mod === 2) projectStats[2].count++;
+            
+            projectStats[3].count++; // Toplam senaryo hamlesi
+            updateTable();
+
+            eventIdx++;
         }, 5000);
 
-        function drawGame() {
+        function drawOffice() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Koridorlar / Zemin
+            // Koridor zemini
             ctx.fillStyle = '#12141d';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Odaları Çiz
-            rooms.forEach((room, idx) => {
-                // Oda zemin tabanı
+            // Odalar
+            rooms.forEach(room => {
                 ctx.fillStyle = '#1a1e2d';
                 ctx.fillRect(room.x, room.y, room.w, room.h);
 
-                // Oda Çerçevesi
                 ctx.strokeStyle = room.color;
                 ctx.lineWidth = 2;
                 ctx.strokeRect(room.x, room.y, room.w, room.h);
 
-                // Oda Başlığı Şeridi
                 ctx.fillStyle = room.color;
-                ctx.fillRect(room.x, room.y, room.w, 30);
+                ctx.fillRect(room.x, room.y, room.w, 28);
 
                 ctx.fillStyle = '#0c0d14';
-                ctx.font = 'bold 13px Segoe UI';
-                ctx.fillText(room.name, room.x + 12, room.y + 20);
+                ctx.font = 'bold 12px Segoe UI';
+                ctx.fillText(room.name, room.x + 10, room.y + 18);
 
-                // Çalışma Masası ve Bilgisayar
+                // Çalışma Masası
                 ctx.fillStyle = '#282e45';
-                ctx.fillRect(room.x + 120, room.y + 110, 140, 70);
+                ctx.fillRect(room.x + 110, room.y + 100, 140, 60);
                 ctx.strokeStyle = room.color;
-                ctx.strokeRect(room.x + 120, room.y + 110, 140, 70);
-
-                // Monitör
-                ctx.fillStyle = '#111';
-                ctx.fillRect(room.x + 170, room.y + 85, 40, 30);
-                ctx.fillStyle = room.color;
-                ctx.fillRect(room.x + 173, room.y + 88, 34, 24);
+                ctx.strokeRect(room.x + 110, room.y + 100, 140, 60);
             });
 
-            // Ajan Karakterleri Çiz (Instagram Piksel/Avatar Tarzı Daireler ve İsimlikler)
+            // Ajan Karakterler
             agents.forEach(agent => {
-                // Karakter Gölgesi
                 ctx.beginPath();
-                ctx.arc(agent.x, agent.y + 15, 14, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fill();
-
-                // Karakter Gövdesi (Kafa)
-                ctx.beginPath();
-                ctx.arc(agent.x, agent.y, 16, 0, Math.PI * 2);
+                ctx.arc(agent.x + 70, agent.y + 30, 14, 0, Math.PI * 2);
                 ctx.fillStyle = agent.color;
                 ctx.fill();
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Karakter İsim Etiketi ve Durumu (Instagram Arayüz Stili)
-                ctx.fillStyle = 'rgba(15, 17, 26, 0.85)';
-                ctx.fillRect(agent.x - 70, agent.y - 45, 140, 32);
+                // Durum Etiketi
+                ctx.fillStyle = 'rgba(15, 17, 26, 0.9)';
+                ctx.fillRect(agent.x - 20, agent.y - 25, 180, 26);
                 ctx.strokeStyle = agent.color;
-                ctx.lineWidth = 1;
-                ctx.strokeRect(agent.x - 70, agent.y - 45, 140, 32);
-
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 11px Segoe UI';
-                ctx.fillText(agent.name, agent.x - 62, agent.y - 30);
+                ctx.strokeRect(agent.x - 20, agent.y - 25, 180, 26);
 
                 ctx.fillStyle = '#00ffcc';
-                ctx.font = '9px Segoe UI';
-                ctx.fillText(agent.status, agent.x - 62, agent.y - 17);
+                ctx.font = '10px Segoe UI';
+                ctx.fillText(`${agent.name}: ${agent.status}`, agent.x - 12, agent.y - 9);
             });
 
-            requestAnimationFrame(drawGame);
+            requestAnimationFrame(drawOffice);
         }
 
-        drawGame();
+        drawOffice();
     </script>
 </body>
 </html>
