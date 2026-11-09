@@ -1,1 +1,6 @@
-{"name": "com.teknecidigital", "version": "1.0.0", "private": true} 
+{
+    "name": "com.teknecidigital",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module"
+  }
