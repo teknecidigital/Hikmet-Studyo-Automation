@@ -2,5 +2,8 @@
     "name": "com.teknecidigital",
     "version": "1.0.0",
     "private": true,
-    "type": "module"
-  }
+    "type": "module",
+    "dependencies": {
+        "googleapis": "^189.0.0"
+    }
+}
