@@ -1,16 +1,26 @@
 // src/agents/scriptwriterAgent.js
-// Projenin Master Senarist Ajanı: İçerik stratejisini ve akışını belirler.
+// Tekrara düşmeyen, dinamik hafızalı Master Senarist Ajanı
 
 export class ScriptwriterAgent {
-    constructor(name = "Master Senarist") {
-      this.name = name;
-    }
-  
-    decideNextContent() {
-      const strategies = ["ATASOZU", "OYUN", "SHORTS"];
-      const chosenStrategy = strategies[Math.floor(Math.random() * strategies.length)];
-      
-      console.log(`\n[${this.name}] Senaryo Analizi: Sıradaki otonom yayın akışı için '${chosenStrategy}' stratejisi seçildi.`);
-      return chosenStrategy;
-    }
+  constructor(name = "Hollywood Senaristi") {
+    this.name = name;
+    this.lastStrategy = null; // Son seçilen stratejiyi hafızada tutar
   }
+
+  decideNextContent() {
+    // Genişletilmiş ve çeşitlendirilmiş strateji havuzu
+    const strategies = ["ATASOZU", "OYUN", "SHORTS", "TEKNOLOJI_HABERI", "KUPON_BILGI"];
+    
+    // Aynı stratejinin üst üste iki kez seçilmesini engellemek için filtreleme
+    const availableStrategies = strategies.filter(s => s !== this.lastStrategy);
+    
+    // Havuzdan rastgele akıllı seçim yap
+    const chosenStrategy = availableStrategies[Math.floor(Math.random() * availableStrategies.length)];
+    
+    // Hafızayı güncelle
+    this.lastStrategy = chosenStrategy;
+
+    console.log(`\n[${this.name}] Akıllı Senaryo Analizi: Tekrar engellendi. Sıradaki otonom akış için '${chosenStrategy}' stratejisi seçildi.`);
+    return chosenStrategy;
+  }
+}
