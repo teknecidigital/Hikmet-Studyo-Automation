@@ -2,138 +2,167 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Tekneci Digital - 2D Kuş Bakışı Otonom Ofis Katı</title>
+    <title>Tekneci Digital - Instagram Tarzı Otonom Ofis Simülasyonu</title>
     <style>
-        body { margin: 0; background: #0f111a; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; display: flex; height: 100vh; }
+        body { margin: 0; background: #0c0d14; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sol taraf: Canlı Akış ve Kontrol Paneli */
-        #sidebar { width: 350px; background: #151823; border-right: 2px solid #222639; display: flex; flex-direction: column; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); z-index: 10; }
+        /* Sol Panel: Anlık Ajan Akış Raporu */
+        #sidebar { width: 360px; background: #13151f; border-right: 2px solid #212538; display: flex; flex-direction: column; padding: 20px; box-shadow: 5px 0 20px rgba(0,0,0,0.6); z-index: 10; }
         h2 { font-size: 18px; color: #00ffcc; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .log-box { flex-grow: 1; background: #0b0d13; border: 1px solid #222639; border-radius: 8px; padding: 12px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #00ffcc; line-height: 1.4; }
+        .log-box { flex-grow: 1; background: #08090f; border: 1px solid #212538; border-radius: 10px; padding: 12px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #00ffcc; line-height: 1.5; }
         
-        /* Sağ taraf: 2D Kuş Bakışı Ofis Katı */
-        #office-container { flex-grow: 1; position: relative; background: #121520; display: flex; justify-content: center; align-items: center; }
-        canvas { box-shadow: 0 0 40px rgba(0,0,0,0.8); border-radius: 12px; background: #1a1e29; }
+        /* Sağ Panel: Canlı 2D Ofis Katı */
+        #office-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: #10121b; }
+        canvas { box-shadow: 0 0 50px rgba(0,0,0,0.9); border-radius: 14px; background: #181b28; border: 2px solid #262b3d; }
         
-        .legend { font-size: 12px; color: #888; margin-top: 15px; border-top: 1px solid #222639; padding-top: 10px; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h2>🏢 Otonom Ofis Paneli</h2>
-        <div style="font-size: 13px; color: #aaa; margin-bottom: 10px;">Kuş bakışı odalar ve anlık ajan aktiviteleri:</div>
+        <h2>🕹️ Otonom Ofis Canlı Akışı</h2>
+        <div style="font-size: 12px; color: #8a8f9d; margin-bottom: 12px;">Instagram tarzı ajan hareket ve görev takibi:</div>
         <div class="log-box" id="logStream">
-            [Sistem]: 2D Kuş bakışı ofis katı başlatıldı.<br>
-            [Sistem]: Odalar arası veri akışı bekleniyor...<br>
+            [00:01] Sistem başlatıldı. Ajanlar odalarındaki yerini aldı.<br>
+            [00:02] Hollywood Senaristi sonraki konuyu kurguluyor...<br>
         </div>
-        <div class="legend">
-            <b>Durum:</b> Ajanlar kendi özel odalarında otonom olarak görevlerini icra ediyor.
+        <div style="font-size: 11px; color: #6c7285; margin-top: 15px; border-top: 1px solid #212538; padding-top: 10px;">
+            <b>İpucu:</b> Karakterler odalarında çalışır, görev tamamlandığında koridorda hareket ederler.
         </div>
     </div>
 
     <div id="office-container">
-        <canvas id="officeCanvas" width="800" height="600"></canvas>
+        <canvas id="pixelOfficeCanvas" width="900" height="650"></canvas>
     </div>
 
     <script>
-        const canvas = document.getElementById('officeCanvas');
+        const canvas = document.getElementById('pixelOfficeCanvas');
         const ctx = canvas.getContext('2d');
         const logStream = document.getElementById('logStream');
 
-        // Odaların ve Ajanların Tanımları (Kuş Bakışı 2D Koordinatlar)
-        const rooms = [
-            { id: 'senarist', name: 'Senarist Odası', x: 50, y: 50, w: 320, h: 220, color: '#ff5722', agent: 'Hollywood Senaristi', status: 'Strateji Belirliyor' },
-            { id: 'atasozu', name: 'Atasözü Departmanı', x: 430, y: 50, w: 320, h: 220, color: '#4CAF50', agent: 'Kültür Uzmanı', status: 'Veri Taranıyor' },
-            { id: 'oyun', name: 'Oyun Geliştirme', x: 50, y: 310, w: 320, h: 220, color: '#2196F3', agent: 'Bulmaca Uzmanı', status: 'Kod Üretiliyor' },
-            { id: 'shorts', name: 'YouTube Shorts Stüdyosu', x: 430, y: 310, w: 320, h: 220, color: '#ffeb3b', agent: 'Video Uzmanı', status: 'Kanal Aktif' }
-        ];
-
-        // Hareketli iş parçacıkları / sinyaller için animasyon değişkeni
-        let pulseAngle = 0;
-
         function addLog(text) {
-            logStream.innerHTML += `> ${text}<br>`;
+            const time = new Date().toLocaleTimeString();
+            logStream.innerHTML += `[${time}] ${text}<br>`;
             logStream.scrollTop = logStream.scrollHeight;
         }
 
-        // Örnek Otonom Akış Simülasyonu (Her 4 saniyede bir oda aktivitesi değişir)
-        const activities = [
-            "Senarist sonraki yayın stratejisini onayladı.",
-            "Atasözü uzmanı veritabanından yeni deyim çekti.",
-            "Oyun modülü yeni bulmaca sorusunu kurguladı.",
-            "YouTube Shorts videosu otomatik olarak kanala yüklendi! 🚀"
+        // Departman Odaları
+        const rooms = [
+            { id: 'senarist', name: 'Senarist Odası', x: 40, y: 40, w: 380, h: 260, color: '#ff5722' },
+            { id: 'atasozu', name: 'Atasözü Departmanı', x: 480, y: 40, w: 380, h: 260, color: '#4CAF50' },
+            { id: 'oyun', name: 'Oyun Stüdyosu', x: 40, y: 340, w: 380, h: 260, color: '#2196F3' },
+            { id: 'shorts', name: 'YouTube Shorts Odası', x: 480, y: 340, w: 380, h: 260, color: '#ffeb3b' }
         ];
 
-        let actIndex = 0;
+        // Ajan Karakterler (Instagram Tarzı Mini Avatarlar)
+        let agents = [
+            { name: 'Senarist', role: 'Hollywood Senaristi', x: 150, y: 150, targetX: 150, targetY: 150, color: '#ff5722', roomIndex: 0, status: 'Senaryo Yazıyor' },
+            { name: 'Atasözü', role: 'Kültür Uzmanı', x: 590, y: 150, targetX: 590, targetY: 150, color: '#4CAF50', roomIndex: 1, status: 'Veri Taranıyor' },
+            { name: 'Oyun', role: 'Bulmaca Uzmanı', x: 150, y: 450, targetX: 150, targetY: 450, color: '#2196F3', roomIndex: 2, status: 'Kod Üretiliyor' },
+            { name: 'Shorts', role: 'Video Uzmanı', x: 590, y: 450, targetX: 590, targetY: 450, color: '#ffeb3b', roomIndex: 3, status: 'Kanal Aktif 🚀' }
+        ];
+
+        // Otonom Akış Simülasyon Olayları
+        const flowMessages = [
+            "Senarist yeni bir video serisi kurguladı.",
+            "Atasözü uzmanı günün deyimini veritabanına işledi.",
+            "Oyun modülü yeni bulmaca sorusunu test etti.",
+            "YouTube Shorts içeriği otomatik olarak buluta ve kanala aktarıldı!"
+        ];
+
+        let msgIdx = 0;
         setInterval(() => {
-            const currentAct = activities[actIndex % activities.length];
-            addLog(currentAct);
+            const activeMsg = flowMessages[msgIdx % flowMessages.length];
+            addLog(activeMsg);
             
-            // Rastgele bir odanın durumunu hareketlendir
-            rooms.forEach(r => r.active = false);
-            rooms[actIndex % rooms.length].active = true;
+            // Rastgele bir ajanı hareket ettir / canlandır
+            let movingAgent = agents[msgIdx % agents.length];
+            movingAgent.status = "Aktif Üretim Yapıyor ⚡";
+            
+            setTimeout(() => {
+                movingAgent.status = "Görev Tamamlandı (Bekliyor)";
+            }, 3000);
 
-            actIndex++;
-        }, 4000);
+            msgIdx++;
+        }, 5000);
 
-        function drawOffice() {
+        function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            pulseAngle += 0.05;
 
-            // Ofis Koridorları / Zemin Arka Planı
-            ctx.fillStyle = '#161924';
+            // Koridorlar / Zemin
+            ctx.fillStyle = '#12141d';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Odaları Çiz
-            rooms.forEach(room => {
-                // Oda zemin kutusu
-                ctx.fillStyle = room.active ? '#1e2436' : '#141824';
+            rooms.forEach((room, idx) => {
+                // Oda zemin tabanı
+                ctx.fillStyle = '#1a1e2d';
                 ctx.fillRect(room.x, room.y, room.w, room.h);
 
-                // Oda Çerçevesi (Aktifse parlar)
+                // Oda Çerçevesi
                 ctx.strokeStyle = room.color;
-                ctx.lineWidth = room.active ? 3 : 1.5;
+                ctx.lineWidth = 2;
                 ctx.strokeRect(room.x, room.y, room.w, room.h);
 
-                // Oda Başlığı
+                // Oda Başlığı Şeridi
                 ctx.fillStyle = room.color;
-                ctx.font = 'bold 14px Segoe UI';
-                ctx.fillText(room.name, room.x + 15, room.y + 25);
+                ctx.fillRect(room.x, room.y, room.w, 30);
 
-                // Ajan Bilgisi
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Segoe UI';
-                ctx.fillText(`Ajan: ${room.agent}`, room.x + 15, room.y + 55);
-                
-                // Durum Metni
-                ctx.fillStyle = room.active ? '#00ffcc' : '#888';
-                ctx.fillText(`Durum: ${room.status}`, room.x + 15, room.y + 80);
+                ctx.fillStyle = '#0c0d14';
+                ctx.font = 'bold 13px Segoe UI';
+                ctx.fillText(room.name, room.x + 12, room.y + 20);
 
-                // Oda İçindeki Çalışma Masası (Küçük 2D Kutu)
-                ctx.fillStyle = '#2c3247';
-                ctx.fillRect(room.x + 40, room.y + 110, 100, 60);
+                // Çalışma Masası ve Bilgisayar
+                ctx.fillStyle = '#282e45';
+                ctx.fillRect(room.x + 120, room.y + 110, 140, 70);
                 ctx.strokeStyle = room.color;
-                ctx.strokeRect(room.x + 40, room.y + 110, 100, 60);
+                ctx.strokeRect(room.x + 120, room.y + 110, 140, 70);
 
-                ctx.fillStyle = '#aaa';
-                ctx.font = '10px monospace';
-                ctx.fillText('Masa & Bilgisayar', room.x + 48, room.y + 145);
-
-                // Hareketli Çalışma Sinyali (Aktif odada yanıp sönen radar/çalışma işareti)
-                if (room.active) {
-                    let radius = 10 + Math.sin(pulseAngle * 3) * 4;
-                    ctx.beginPath();
-                    ctx.arc(room.x + room.w - 30, room.y + 40, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = room.color;
-                    ctx.fill();
-                }
+                // Monitör
+                ctx.fillStyle = '#111';
+                ctx.fillRect(room.x + 170, room.y + 85, 40, 30);
+                ctx.fillStyle = room.color;
+                ctx.fillRect(room.x + 173, room.y + 88, 34, 24);
             });
 
-            requestAnimationFrame(drawOffice);
+            // Ajan Karakterleri Çiz (Instagram Piksel/Avatar Tarzı Daireler ve İsimlikler)
+            agents.forEach(agent => {
+                // Karakter Gölgesi
+                ctx.beginPath();
+                ctx.arc(agent.x, agent.y + 15, 14, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fill();
+
+                // Karakter Gövdesi (Kafa)
+                ctx.beginPath();
+                ctx.arc(agent.x, agent.y, 16, 0, Math.PI * 2);
+                ctx.fillStyle = agent.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Karakter İsim Etiketi ve Durumu (Instagram Arayüz Stili)
+                ctx.fillStyle = 'rgba(15, 17, 26, 0.85)';
+                ctx.fillRect(agent.x - 70, agent.y - 45, 140, 32);
+                ctx.strokeStyle = agent.color;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(agent.x - 70, agent.y - 45, 140, 32);
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 11px Segoe UI';
+                ctx.fillText(agent.name, agent.x - 62, agent.y - 30);
+
+                ctx.fillStyle = '#00ffcc';
+                ctx.font = '9px Segoe UI';
+                ctx.fillText(agent.status, agent.x - 62, agent.y - 17);
+            });
+
+            requestAnimationFrame(drawGame);
         }
 
-        drawOffice();
+        drawGame();
     </script>
 </body>
 </html>
