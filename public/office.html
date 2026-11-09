@@ -2,86 +2,129 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Tekneci Digital - 3D Otonom Ofis</title>
+    <title>Tekneci Digital - Gelişmiş 3D Otonom Ofis</title>
     <style>
-        body { margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
-        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; border: 1px solid #444; width: 320px; }
-        h2 { margin: 0 0 10px 0; font-size: 16px; color: #4CAF50; }
-        .agent-info { font-size: 13px; margin-bottom: 8px; border-left: 3px solid; padding-left: 8px; }
+        body { margin: 0; background: #0b0b0f; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        #ui { position: absolute; top: 15px; left: 15px; background: rgba(15,15,25,0.85); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        h2 { margin: 0 0 12px 0; font-size: 18px; color: #00ffcc; display: flex; align-items: center; gap: 8px; }
+        .agent-info { font-size: 13px; margin-bottom: 10px; border-left: 4px solid; padding-left: 10px; opacity: 0.9; }
+        #status { font-size: 12px; color: #00ffcc; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="ui">
         <h2>🏢 Tekneci Digital Canlı Ofis</h2>
-        <div class="agent-info" style="border-color: #ff5722;"><b>Senarist (Turuncu):</b> Strateji belirliyor.</div>
-        <div class="agent-info" style="border-color: #4CAF50;"><b>Atasözü Uzmanı (Yeşil):</b> Kültür verisi işliyor.</div>
-        <div class="agent-info" style="border-color: #2196F3;"><b>Oyun Uzmanı (Mavi):</b> Bulmaca kurguluyor.</div>
-        <div class="agent-info" style="border-color: #ffeb3b;"><b>Shorts Uzmanı (Sarı):</b> Video trendleri tarıyor.</div>
-        <hr style="border-color: #333;">
-        <div id="status" style="font-size: 12px; color: #aaa;">Durum: Ajanlar aktif çalışıyor...</div>
+        <div class="agent-info" style="border-color: #ff5722;"><b>Senarist:</b> Strateji ve Senaryo Yönetimi</div>
+        <div class="agent-info" style="border-color: #4CAF50;"><b>Atasözü Uzmanı:</b> Kültür ve Dil Veritabanı</div>
+        <div class="agent-info" style="border-color: #2196F3;"><b>Oyun Uzmanı:</b> Bulmaca ve Eğlence Motoru</div>
+        <div class="agent-info" style="border-color: #ffeb3b;"><b>Shorts Uzmanı:</b> YouTube Video & Trend Kurgusu</div>
+        <div id="status">● Canlı Simülasyon Aktif (Ajanlar Yürüyor ve Çalışıyor)</div>
     </div>
 
-    <!-- Üç Boyutlu Görselleştirme için Three.js Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
+        scene.background = new THREE.Color(0x12121c);
+        scene.fog = new THREE.FogExp2(0x12121c, 0.025);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 15, 20);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 18, 24);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // Ofis Zemin Grid
-        const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
-        scene.add(gridHelper);
+        // Şık Ofis Zemini
+        const floorGeo = new THREE.PlaneGeometry(40, 40);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.8 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const grid = new THREE.GridHelper(40, 20, 0x333344, 0x222230);
+        grid.position.y = 0.01;
+        scene.add(grid);
 
         // Işıklandırma
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffffff, 1);
-        pointLight.position.set(0, 20, 10);
-        scene.add(pointLight);
 
-        // Farklı Renklerde Ajan Karakterleri (Kutular olarak simüle ediliyor)
-        const agentsData = [
-            { name: "Senarist", color: 0xff5722, x: -6, z: -4 },
-            { name: "Atasözü Uzmanı", color: 0x4CAF50, x: 6, z: -4 },
-            { name: "Oyun Uzmanı", color: 0x2196F3, x: -6, z: 4 },
-            { name: "Shorts Uzmanı", color: 0xffeb3b, x: 6, z: 4 }
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 25, 15);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Ajanlar ve Masaları
+        const agentsConfig = [
+            { name: "Senarist", color: 0xff5722, deskX: -8, deskZ: -5 },
+            { name: "Atasözü Uzmanı", color: 0x4CAF50, deskX: 8, deskZ: -5 },
+            { name: "Oyun Uzmanı", color: 0x2196F3, deskX: -8, deskZ: 5 },
+            { name: "Shorts Uzmanı", color: 0xffeb3b, deskX: 8, deskZ: 5 }
         ];
 
-        const agentMeshes = [];
+        const characters = [];
 
-        agentsData.forEach(data => {
-            // Masa
-            const deskGeo = new THREE.BoxGeometry(3, 0.5, 2);
-            const deskMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
-            const desk = new THREE.Mesh(deskGeo, deskMat);
-            desk.position.set(data.x, 0.25, data.z);
-            scene.add(desk);
+        agentsConfig.forEach((cfg, idx) => {
+            // Ofis Masası
+            const deskGroup = new THREE.Group();
+            const topMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.5 });
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
 
-            // Karakter (Renkli Kafa/Küp)
-            const charGeo = new THREE.BoxGeometry(1, 1.5, 1);
-            const charMat = new THREE.MeshLambertMaterial({ color: data.color });
-            const character = new THREE.Mesh(charGeo, charMat);
-            character.position.set(data.x, 1.25, data.z);
-            scene.add(character);
-            agentMeshes.push(character);
+            const top = new THREE.Mesh(new THREE.BoxGeometry(4, 0.2, 2.2), topMat);
+            top.position.y = 1.2;
+            top.castShadow = true;
+            deskGroup.add(top);
+
+            // Bilgisayar Ekranı Monitör
+            const monitorMat = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: cfg.color, emissiveIntensity: 0.3 });
+            const monitor = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.1), monitorMat);
+            monitor.position.set(0, 1.8, -0.6);
+            deskGroup.add(monitor);
+
+            deskGroup.position.set(cfg.deskX, 0, cfg.deskZ);
+            scene.add(deskGroup);
+
+            // Hareket Eden Karakter (Gövde + Kafa)
+            const charGroup = new THREE.Group();
+            
+            const bodyMat = new THREE.MeshStandardMaterial({ color: cfg.color });
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1, 4, 8), bodyMat);
+            body.position.y = 1.0;
+            body.castShadow = true;
+            charGroup.add(body);
+
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), headMat);
+            head.position.y = 1.9;
+            head.castShadow = true;
+            charGroup.add(head);
+
+            charGroup.position.set(cfg.deskX, 0, cfg.deskZ + 1.5);
+            scene.add(charGroup);
+
+            characters.push({
+                mesh: charGroup,
+                baseX: cfg.deskX,
+                baseZ: cfg.deskZ + 1.5,
+                offset: idx * 1.5
+            });
         });
 
-        // Animasyon Döngüsü (Karakterlerin hafifçe çalışıyormuş gibi hareket etmesi)
-        let clock = new THREE.Clock();
+        // Animasyon Döngüsü (Karakterlerin ofis içinde yürüme ve çalışma simülasyonu)
+        const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame(animate);
-            let time = clock.getElapsedTime();
+            const time = clock.getElapsedTime();
 
-            agentMeshes.forEach((mesh, index) => {
-                // Hafif yukarı aşağı calisma hareketi
-                mesh.position.y = 1.25 + Math.sin(time * 3 + index) * 0.1;
+            characters.forEach((char, i) => {
+                // Karakterlerin masanın etrafında hafifçe dolanma ve çalışma hareketleri
+                char.mesh.position.x = char.baseX + Math.sin(time * 1.5 + char.offset) * 1.2;
+                char.mesh.position.z = char.baseZ + Math.cos(time * 1.5 + char.offset) * 0.6;
+                // Hafif zıplama/yürüme efekti
+                char.mesh.position.y = Math.abs(Math.sin(time * 4 + char.offset)) * 0.15;
             });
 
             renderer.render(scene, camera);
