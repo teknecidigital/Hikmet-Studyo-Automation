@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tekneci Digital - 3D Otonom Ofis</title>
+    <style>
+        body { margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
+        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; border: 1px solid #444; width: 320px; }
+        h2 { margin: 0 0 10px 0; font-size: 16px; color: #4CAF50; }
+        .agent-info { font-size: 13px; margin-bottom: 8px; border-left: 3px solid; padding-left: 8px; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h2>🏢 Tekneci Digital Canlı Ofis</h2>
+        <div class="agent-info" style="border-color: #ff5722;"><b>Senarist (Turuncu):</b> Strateji belirliyor.</div>
+        <div class="agent-info" style="border-color: #4CAF50;"><b>Atasözü Uzmanı (Yeşil):</b> Kültür verisi işliyor.</div>
+        <div class="agent-info" style="border-color: #2196F3;"><b>Oyun Uzmanı (Mavi):</b> Bulmaca kurguluyor.</div>
+        <div class="agent-info" style="border-color: #ffeb3b;"><b>Shorts Uzmanı (Sarı):</b> Video trendleri tarıyor.</div>
+        <hr style="border-color: #333;">
+        <div id="status" style="font-size: 12px; color: #aaa;">Durum: Ajanlar aktif çalışıyor...</div>
+    </div>
+
+    <!-- Üç Boyutlu Görselleştirme için Three.js Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 15, 20);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Ofis Zemin Grid
+        const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
+        scene.add(gridHelper);
+
+        // Işıklandırma
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(0, 20, 10);
+        scene.add(pointLight);
+
+        // Farklı Renklerde Ajan Karakterleri (Kutular olarak simüle ediliyor)
+        const agentsData = [
+            { name: "Senarist", color: 0xff5722, x: -6, z: -4 },
+            { name: "Atasözü Uzmanı", color: 0x4CAF50, x: 6, z: -4 },
+            { name: "Oyun Uzmanı", color: 0x2196F3, x: -6, z: 4 },
+            { name: "Shorts Uzmanı", color: 0xffeb3b, x: 6, z: 4 }
+        ];
+
+        const agentMeshes = [];
+
+        agentsData.forEach(data => {
+            // Masa
+            const deskGeo = new THREE.BoxGeometry(3, 0.5, 2);
+            const deskMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
+            const desk = new THREE.Mesh(deskGeo, deskMat);
+            desk.position.set(data.x, 0.25, data.z);
+            scene.add(desk);
+
+            // Karakter (Renkli Kafa/Küp)
+            const charGeo = new THREE.BoxGeometry(1, 1.5, 1);
+            const charMat = new THREE.MeshLambertMaterial({ color: data.color });
+            const character = new THREE.Mesh(charGeo, charMat);
+            character.position.set(data.x, 1.25, data.z);
+            scene.add(character);
+            agentMeshes.push(character);
+        });
+
+        // Animasyon Döngüsü (Karakterlerin hafifçe çalışıyormuş gibi hareket etmesi)
+        let clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            let time = clock.getElapsedTime();
+
+            agentMeshes.forEach((mesh, index) => {
+                // Hafif yukarı aşağı calisma hareketi
+                mesh.position.y = 1.25 + Math.sin(time * 3 + index) * 0.1;
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // src/index.js
-import { runAutonomousLoop } from './agents/autonomousOrchestrator.js';
+import { runContinuousAutonomousLoop } from './agents/autonomousOrchestrator.js';
 
-// Tam Otonom Döngüyü Başlat
-runAutonomousLoop();
+// 7/24 Kesintisiz Otonom Döngüyü Başlat
+runContinuousAutonomousLoop();

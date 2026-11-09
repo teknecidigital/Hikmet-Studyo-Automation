@@ -1,36 +1,52 @@
 // src/agents/autonomousOrchestrator.js
 import { ScriptwriterAgent } from './scriptwriterAgent.js';
 import { ProverbExpertAgent, GameExpertAgent, ShortsExpertAgent } from './contentAgents.js';
+import { execSync } from 'child_process';
 
-export function runAutonomousLoop() {
+function autoCommitAndPush(category, title) {
+  try {
+    execSync('git add .', { stdio: 'ignore' });
+    execSync(`git commit -m "Otonom Üretim: [${category}] ${title}"`, { stdio: 'ignore' });
+    execSync('git push origin main', { stdio: 'ignore' });
+    console.log(`[GitHub Otomasyon]: Yeni üretim başarıyla buluta (GitHub) aktarıldı! 🚀`);
+  } catch (error) {
+    console.log(`[GitHub Otomasyon]: Aktarım sırasında beklenen durum (değişiklik yok veya bağlantı bekleniyor).`);
+  }
+}
+
+export function runContinuousAutonomousLoop() {
   const senarist = new ScriptwriterAgent("Hollywood Senaristi");
   const proverbAgent = new ProverbExpertAgent();
   const gameAgent = new GameExpertAgent();
   const shortsAgent = new ShortsExpertAgent();
 
   console.log("==================================================");
-  console.log("  TEKNECİ DIGITAL - TAM OTONOM AJAN SİSTEMİ BAŞLADI ");
+  console.log("  TEKNECİ DIGITAL - 7/24 KESİNTİSİZ OTONOM SİSTEM  ");
   console.log("==================================================");
 
-  // Senarist sonraki adımı belirler
-  const strategy = senarist.decideNextContent();
+  let cycle = 1;
 
-  let producedContent = null;
+  // Her 5 saniyede bir (5000 milisaniye) çalışan sonsuz döngü
+  setInterval(() => {
+    console.log(`\n--- DÖNGÜ #${cycle++} BAŞLATILIYOR ---`);
+    const strategy = senarist.decideNextContent();
 
-  // Stratejiye göre ilgili uzman ajan görevi devralır
-  if (strategy === "ATASOZU") {
-    producedContent = proverbAgent.generateContent();
-  } else if (strategy === "OYUN") {
-    producedContent = gameAgent.generateContent();
-  } else {
-    producedContent = shortsAgent.generateContent();
-  }
+    let producedContent = null;
 
-  console.log("\n--- OTONOM ÜRETİM RAPORU ---");
-  console.log(`Kategori : ${producedContent.type}`);
-  console.log(`Üretim   : ${producedContent.content}`);
-  console.log(`Detay    : ${producedContent.detail}`);
-  console.log("==================================================");
-  console.log("  SİSTEM YENİ DÖNGÜ İÇİN BEKLİYOR (ARKAYA YASLANIN) ");
-  console.log("==================================================");
+    if (strategy === "ATASOZU") {
+      producedContent = proverbAgent.generateContent();
+    } else if (strategy === "OYUN") {
+      producedContent = gameAgent.generateContent();
+    } else {
+      producedContent = shortsAgent.generateContent();
+    }
+
+    console.log(`[Otonom Rapor] Kategori: ${producedContent.type} | İçerik: ${producedContent.content}`);
+    
+    // GitHub'a otomatik aktarımı tetikle
+    autoCommitAndPush(producedContent.type, producedContent.content);
+    
+    console.log("--------------------------------------------------");
+    console.log("Sıradaki otonom döngü için 5 saniye bekleniyor...\n");
+  }, 5000);
 }
