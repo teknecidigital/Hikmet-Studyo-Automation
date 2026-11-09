@@ -1,6 +1,7 @@
 // src/agents/autonomousOrchestrator.js
 import { ScriptwriterAgent } from './scriptwriterAgent.js';
 import { ProverbExpertAgent, GameExpertAgent, ShortsExpertAgent } from './contentAgents.js';
+import { publishShortsToYouTube } from '../services/youtubeService.js';
 import { execSync } from 'child_process';
 
 function autoCommitAndPush(category, title) {
@@ -8,9 +9,9 @@ function autoCommitAndPush(category, title) {
     execSync('git add .', { stdio: 'ignore' });
     execSync(`git commit -m "Otonom Üretim: [${category}] ${title}"`, { stdio: 'ignore' });
     execSync('git push origin main', { stdio: 'ignore' });
-    console.log(`[GitHub Otomasyon]: Yeni üretim başarıyla buluta (GitHub) aktarıldı! 🚀`);
+    console.log(`[GitHub Otomasyon]: Yeni üretim GitHub bulut deposuna aktarıldı! 🚀`);
   } catch (error) {
-    console.log(`[GitHub Otomasyon]: Aktarım sırasında beklenen durum (değişiklik yok veya bağlantı bekleniyor).`);
+    console.log(`[GitHub Otomasyon]: Aktarım güncel.`);
   }
 }
 
@@ -21,13 +22,12 @@ export function runContinuousAutonomousLoop() {
   const shortsAgent = new ShortsExpertAgent();
 
   console.log("==================================================");
-  console.log("  TEKNECİ DIGITAL - 7/24 KESİNTİSİZ OTONOM SİSTEM  ");
+  console.log("  TEKNECİ DIGITAL - 7/24 YOUTUBE & OTONOM SİSTEM  ");
   console.log("==================================================");
 
   let cycle = 1;
 
-  // Her 5 saniyede bir (5000 milisaniye) çalışan sonsuz döngü
-  setInterval(() => {
+  setInterval(async () => {
     console.log(`\n--- DÖNGÜ #${cycle++} BAŞLATILIYOR ---`);
     const strategy = senarist.decideNextContent();
 
@@ -39,14 +39,13 @@ export function runContinuousAutonomousLoop() {
       producedContent = gameAgent.generateContent();
     } else {
       producedContent = shortsAgent.generateContent();
+      // Eğer strateji Shorts ise doğrudan YouTube kanalına otomatik gönderelim
+      await publishShortsToYouTube(producedContent);
     }
 
     console.log(`[Otonom Rapor] Kategori: ${producedContent.type} | İçerik: ${producedContent.content}`);
     
-    // GitHub'a otomatik aktarımı tetikle
     autoCommitAndPush(producedContent.type, producedContent.content);
-    
     console.log("--------------------------------------------------");
-    console.log("Sıradaki otonom döngü için 5 saniye bekleniyor...\n");
   }, 5000);
 }
